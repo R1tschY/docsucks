@@ -47,8 +47,7 @@ CPP_ASSERT_TEST_CASE_TEMPLATE = '''\
 CPP_ASSERT_TEST_CASE_PART_TEMPLATE = '''\
       {code}
       
-      fflush(stdout);
-      assert(strcmp("{expecation}", _docsucks_test_case_.get_stdout()) == 0);
+      assert(strcmp("{expecation}", _docsucks_test_case_.get_stdout().c_str()) == 0);
       _docsucks_test_case_.reset();
 '''
 

@@ -24,7 +24,12 @@
 // assertion lib
 #include <cassert>
 
+#include <unistd.h>
 #include <cstdio>
+#include <cstring>
+#include <cerrno>
+#include <stdexcept>
+
 
 namespace docsucks {
 
@@ -36,54 +41,48 @@ public:
   test_case();
   ~test_case();
 
-  const char* get_stdout() const { return membuf_stdout_; }
-  void reset() {
+  std::string get_stdout() const
+  {
     fflush(stdout);
-    fseek(stdout, 0, SEEK_END);
-    long size = ftell(stdout);
-    frewind(stdout);
+    long pos = ftell(stdout);
 
-    memset(membuf_stdout_, 0, size);
+    std::string result(pos, '\0');
+    fseek(stdout, 0, SEEK_SET);
+    std::fread(&result[0], sizeof(result[0]), result.size(), stdout);
+    fseek(stdout, pos, SEEK_SET);
+    return result;
+  }
+
+  void reset()
+  {
+    fflush(stdout);
+    rewind(stdout);
   }
 
 private:
-  FILE* old_stdout_ = nullptr;
-
-  FILE* mem_stdout_ = nullptr;
-  char* membuf_stdout_ = nullptr;
-  std::size_t memlen_stdout_ = 0;
+  int old_stdout_ = 0;
 };
 
 inline
-void test_case::test_case()
+test_case::test_case()
 {
-  fflush(stdout);
+  old_stdout_ = dup(fileno(stdout));
 
-  mem_stdout_ = open_memstream(&membuf_stdout_, &memlen_stdout_);
-  if (!mem_stdout_)
+  FILE* file = freopen("tmp.stdout~", "w+", stdout);
+  if (file == NULL)
   {
-    fprintf(stderr, "Failed to create memstream for stdout: errno=%d", errno);
-    throw std::exception("Failed to create memstream for stdout");
+    perror("freopen() failed");
+    throw std::runtime_error("Failed to create tempfile for stdout");
   }
-
-  // replace stdout
-  old_stdout_ = stdout;
-  stdout = mem_stdout_;
 }
 
 inline
-void test_case::~test_case()
+test_case::~test_case()
 {
   fflush(stdout);
 
-  // restore stdout
-  stdout = old_stdout_;
-
-  if (mem_stdout_)
-  {
-    fclose(mem_stdout_);
-    free(membuf_stdout_);
-  }
+  dup2(old_stdout_, fileno(stdout));
+  close(old_stdout_);
 }
 
 } // namespace docsucks
