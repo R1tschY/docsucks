@@ -21,6 +21,8 @@
 C++ support for docsucks
 """
 
+import re
+
 from libdocsucks import Language, registry
 from libdocsucks.builtins.comments import CRegexExtractor
 
