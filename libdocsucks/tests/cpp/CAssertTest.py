@@ -20,7 +20,10 @@
 from os import path
 
 from libdocsucks.tests import CppCodeTest
+from libdocsucks.generate import DocSucks
 
+TEST_FILE_DIR = path.normpath(
+  path.join(path.dirname(__file__), "..", "..", "..", "testfiles"))
 
 class CAssertTest(CppCodeTest):
 
@@ -28,9 +31,23 @@ class CAssertTest(CppCodeTest):
     super(CAssertTest, self).setUp()
     self.buildDir = path.join(path.dirname(__file__), "..", "..", "..", "build", "tests", "cpp")
     self.compileMatrix = {
-      "g++": "-std=gnu++0x -lboost_unit_test_framework"
+      "g++": [
+#        "-std=gnu++03 -lboost_unit_test_framework",
+        "-std=gnu++0x -lboost_unit_test_framework",
+        "-std=gnu++1y -lboost_unit_test_framework",
+        "-std=gnu++1z -lboost_unit_test_framework"
+      ]
     }
 
-  def test(self):
+  def testUnits(self):
     self.assertRunsFine(path.join(path.dirname(__file__), "CAssertTest.cpp"))
+
+  def testIntegration(self):
+    docsucks = DocSucks()
+    docsucks.loadConfig(path.join(TEST_FILE_DIR, "CppClass.json"))
+    docsucks.handleFile(
+      path.join(TEST_FILE_DIR, "CppClass.h"),
+      output_path=path.join(self.buildDir, "CppClassDocTest.cpp"))
+    self.assertRunsFine(path.join(self.buildDir, "CppClassDocTest.cpp"))
+
 
