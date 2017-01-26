@@ -20,7 +20,9 @@
 import os
 import json
 import libdocsucks
+
 from libdocsucks.config import generateDefaultConfig
+from libdocsucks.builtins import load_builtins
 
 DEFAULT_GENERATED_FOLDER = "."
 
@@ -31,6 +33,8 @@ class DocSucks(object):
     self.language = language
     self.config = {}
 
+    load_builtins()
+
   def showRegisteredComponents(self):
     print("registered languages: {}".format(", ".join(self.registry.languages.keys())))
     print("registered docstyles: {}".format(", ".join(self.registry.docstyles.keys())))
@@ -39,7 +43,7 @@ class DocSucks(object):
     print("default docstyles: {}".format(self.registry.defaultDocStyles))
     print("default generators: {}".format(self.registry.defaultGenerators))
 
-  def handleFile(self, filename):
+  def handleFile(self, filename, output_path=None):
     if not os.path.exists(filename):
       raise IOError("file `{}` does not exist".format(filename))
 
@@ -57,13 +61,14 @@ class DocSucks(object):
     if not generator:
       raise Exception("no generator for language {}".format(language.id))
 
-    generatedFilename = self.getGeneratedFilenameFor(filename)
+    if output_path is None:
+      output_path = self.getGeneratedFilenameFor(filename)
 
     with open(filename, "r") as infile:
       comments = (docstyle.extractCodeLines(comment)
                   for comment in extractor.extractComments(infile))
       generator.generateTest(
-        comments, generatedFilename, filename,
+        comments, output_path, filename,
         self.getGeneratorConfig(generator))
 
   def findLanguageForFile(self, filename):
@@ -104,7 +109,7 @@ class DocSucks(object):
   def getGeneratedFilenameFor(self, filename):
     base, ext = os.path.splitext(os.path.basename(filename))
     return os.path.join(DEFAULT_GENERATED_FOLDER,
-                        "{base}DocTest{ext}".format(base=base, ext=ext))
+                        "{base}DocTest.{ext}".format(base=base, ext=ext))
 
   def handleFiles(self, filenames):
     for filename in filenames:

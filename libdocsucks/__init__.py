@@ -41,10 +41,10 @@ class ModuleTestCode(object):
 
 class Comment(object):
 
-  def __init__(self, comment, commentType=None, lineNumber=None):
+  def __init__(self, comment, commentType=None, line_number=None):
     self.comment = comment
     self.type = commentType
-    self.lineNumber = lineNumber
+    self.line_number = line_number
 
 
 class ConfigValue(object):

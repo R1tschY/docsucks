@@ -27,10 +27,8 @@
 import sys
 import json
 
+import libdocsucks
 from libdocsucks.generate import DocSucks
-import libdocsucks.builtins.cpp
-import libdocsucks.builtins.doxygen
-import libdocsucks.builtins.casserttest
 
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
